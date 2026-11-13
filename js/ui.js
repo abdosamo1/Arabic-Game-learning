@@ -12,6 +12,8 @@
     gear: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7.6" fill="none" stroke="currentColor" stroke-width="4.2" stroke-dasharray="3.2 2.77"/><circle cx="12" cy="12" r="5.4" fill="none" stroke="currentColor" stroke-width="2.6"/></svg>',
     pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4.4" height="14" rx="1.6" fill="currentColor"/><rect x="13.6" y="5" width="4.4" height="14" rx="1.6" fill="currentColor"/></svg>',
     say: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.6v12.8l-4.5-3.9H4z" fill="currentColor"/><path d="M15.2 9a4.2 4.2 0 0 1 0 6M17.8 6.4a8 8 0 0 1 0 11.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
+    heart: '<svg class="heart" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.4C.9 8 3 4.5 6.6 4.5c2 0 3.6 1 5.4 3 1.8-2 3.4-3 5.4-3 3.6 0 5.7 3.5 4.2 7.1C19.5 16.4 12 21 12 21z"/></svg>',
+    bolt: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 2L4.5 13.5h6L9.5 22l10-12.5h-6.5z" fill="currentColor"/></svg>',
     lock: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.6" fill="currentColor"/><path d="M8.2 10.5V8a3.8 3.8 0 0 1 7.6 0v2.5" fill="none" stroke="currentColor" stroke-width="2.4"/></svg>'
   };
 
@@ -36,7 +38,12 @@
     return w.stages.reduce(function (n, s) { return n + store.stageStars(s.id); }, 0);
   }
 
-  function stageOpen(w, i) { return i === 0 || store.stageStars(w.stages[i - 1].id) > 0; }
+  function stageOpen(w, i) { return i === 0 || store.worldPassed(w.id) || store.stageStars(w.stages[i - 1].id) > 0; }
+  function hearts(n, max) {
+    var h = '';
+    for (var i = 0; i < max; i++) h += i < n ? IC.heart : IC.heart.replace('class="heart"', 'class="heart off"');
+    return h;
+  }
 
   /* ---------- التنقّل ---------- */
   var current = 'home';
@@ -100,6 +107,16 @@
         '<span class="stage-letters">' + label + '</span>' +
         '<span class="stage-stars">' + stars(got) + '</span></button>';
     }).join('');
+    var allOpen = w.stages.every(function (s, i) { return stageOpen(w, i); });
+    var top = '';
+    if (store.worldPassed(w.id)) {
+      top = '<p class="test-done">نجحت باختبار تحديد المستوى. كل المراحل مفتوحة واختيارية.</p>';
+    } else if (!allOpen) {
+      top = '<button class="test-card" type="button" data-act="start-test"><span class="test-icon">' + IC.bolt + '</span>' +
+        '<span class="test-text"><span class="test-title">اختبار تحديد المستوى</span><br>' +
+        '<span class="test-meta">تعرف كل هذا؟ ' + U.num(DF.config.testQuestions) + ' سؤالاً، وغلطة واحدة مسموحة. النجاح يفتح كل المراحل.</span></span></button>';
+    }
+    $('stage-list').insertAdjacentHTML('afterbegin', top);
   };
 
   /* ---------- تعرّف على حروف المرحلة ---------- */
@@ -177,10 +194,10 @@
   function potentialStars(m) { return m === 0 ? 3 : m <= 1 ? 2 : 1; }
 
   function updateHud() {
-    var n = DF.config.questionsPerStage;
+    var n = game.qs.length, lives = DF.config.testMaxMistakes + 1;
     $('progress-fill').style.width = (100 * game.i / n) + '%';
     $('progress-num').textContent = U.num(game.i) + '/' + U.num(n);
-    $('hud-stars').innerHTML = stars(potentialStars(game.mistakes));
+    $('hud-stars').innerHTML = game.test ? hearts(Math.max(0, lives - game.mistakes), lives) : stars(potentialStars(game.mistakes));
   }
 
   function setPrompt(q) {
@@ -207,9 +224,23 @@
   }
 
   function startStage(w, si) {
+    view.stage = si;
+    begin({ world: w, si: si, stage: w.stages[si], qs: DF.Q.build(w, si) });
+  }
+
+  /* اختبار تحديد المستوى: أسئلة من كل مراحل العالم. النجاح بيفتح المراحل بدون نجوم. */
+  function startTest(w) { begin({ world: w, test: true, qs: DF.Q.buildTest(w) }); }
+
+  function restart() {
+    if (game.test) startTest(game.world); else startStage(game.world, game.si);
+  }
+
+  function begin(g) {
     clearTimers(); audio.stop(); closeModal();
-    view.world = w; view.stage = si;
-    game = { world: w, si: si, stage: w.stages[si], qs: DF.Q.build(w, si), i: 0, mistakes: 0, done: false };
+    var w = g.world;
+    view.world = w;
+    g.i = 0; g.mistakes = 0; g.done = false;
+    game = g;
     show('game');
     var sp = DF.SPEEDS[w.speed];
     runner.reset();
@@ -247,6 +278,12 @@
     game.mistakes++;
     updateHud();
     audio.sfx('wrong');
+    if (game.test && game.mistakes > DF.config.testMaxMistakes) {
+      game.done = true;
+      game.result = { test: true, pass: false };
+      later(function () { show('result'); }, 1300);
+      return;
+    }
     toast(DF.Q.retry.text, true);
     later(function () {
       if (!game || game.done || current !== 'game') return;
@@ -263,6 +300,14 @@
 
   function finishStage() {
     game.done = true;
+    if (game.test) {
+      store.setPassed(game.world.id);
+      game.result = { test: true, pass: true };
+      runner.finish();
+      audio.sfx('win');
+      later(function () { show('result'); }, 1700);
+      return;
+    }
     var got = potentialStars(game.mistakes);
     var res = store.setStageResult(game.stage.id, got, game.mistakes);
     res.stars = got;
@@ -273,8 +318,26 @@
   }
 
   /* ---------- النتيجة ---------- */
+  function renderTestResult(res) {
+    $('result-hero').textContent = character().emoji;
+    $('result-title').textContent = res.pass ? 'نجحت!' : 'ليس بعد';
+    $('result-note').textContent = res.pass
+      ? 'كل مراحل «' + game.world.title + '» مفتوحة الآن. العبها متى شئت لتجمع نجومها.'
+      : 'تمرّن على المراحل، ثم جرّب الاختبار مرة ثانية.';
+    $('result-stars').hidden = true;
+    $('result-rows').innerHTML = '';
+    $('result-unlock').hidden = true;
+    $('btn-next').textContent = 'المراحل';
+    $('btn-retry').hidden = res.pass;
+    $('btn-to-stages').hidden = true;
+  }
+
   RENDER.result = function () {
     var res = game.result, w = game.world;
+    $('result-stars').hidden = false;
+    $('btn-retry').hidden = false;
+    $('btn-to-stages').hidden = false;
+    if (res.test) { renderTestResult(res); return; }
     var titles = { 3: 'ممتاز!', 2: 'أحسنت!', 1: 'جيّد!' };
     var notes = {
       3: 'بدون أي غلطة.',
@@ -351,7 +414,18 @@
       if (act) onAction(act, t);
     });
 
-    $('btn-play').addEventListener('click', function () { audio.sfx('tap'); show('worlds'); });
+    $('btn-play').addEventListener('click', function () {
+      audio.sfx('tap');
+      var w1 = DF.WORLDS[0];
+      if (!store.state.askedPlacement && store.totalStars() === 0 && !store.worldPassed(w1.id)) {
+        modal('<h2 class="modal-title">تحديد المستوى</h2>' +
+          '<p class="modal-text">هل تعرف الحروف العربية؟<br>اختبار قصير يفتح لك كل مراحل الحروف دفعة واحدة.</p>' +
+          '<button class="btn" type="button" data-act="placement-yes">نعم، اختبرني</button>' +
+          '<button class="btn ghost" type="button" data-act="placement-no">لا، أبدأ من الأول</button>');
+        return;
+      }
+      show('worlds');
+    });
     $('btn-chars').addEventListener('click', function () { audio.sfx('tap'); show('chars'); });
     $('btn-settings').addEventListener('click', function () { audio.sfx('tap'); settingsModal(); });
     $('btn-start').addEventListener('click', function () { startStage(view.world, view.stage); });
@@ -359,10 +433,11 @@
     $('btn-say').addEventListener('click', function () {
       if (game && !game.done) audio.say(game.qs[Math.min(game.i, game.qs.length - 1)].prompt, { interrupt: true });
     });
-    $('btn-retry').addEventListener('click', function () { startStage(game.world, game.si); });
+    $('btn-retry').addEventListener('click', restart);
     $('btn-to-stages').addEventListener('click', function () { clearTimers(); show('stages'); });
     $('btn-next').addEventListener('click', function () {
       clearTimers();
+      if (game.test) { show('stages'); return; }
       if (game.si + 1 < game.world.stages.length) { view.stage = game.si + 1; show('intro'); }
       else show('worlds');
     });
@@ -410,7 +485,15 @@
       if (game && !game.done && (runner.state === 'approach' || runner.state === 'wait')) audio.say(game.qs[game.i].prompt);
       return;
     }
-    if (act === 'restart') { startStage(game.world, game.si); return; }
+    if (act === 'restart') { restart(); return; }
+    if (act === 'start-test') { startTest(view.world); return; }
+    if (act === 'placement-yes' || act === 'placement-no') {
+      store.state.askedPlacement = true;
+      store.save();
+      closeModal();
+      if (act === 'placement-yes') startTest(DF.WORLDS[0]); else show('worlds');
+      return;
+    }
     if (act === 'quit') { closeModal(); clearTimers(); game.done = true; show('stages'); return; }
   }
 
@@ -430,6 +513,6 @@
     }
   }
 
-  DF.ui = { show: show, startStage: startStage, runner: runner };
+  DF.ui = { show: show, startStage: startStage, startTest: startTest, runner: runner, get game() { return game; } };
   boot();
 })(window.DF);

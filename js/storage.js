@@ -9,7 +9,9 @@
       stages: {},        // { w1s1: { stars: 2, best: 1, plays: 3 } }
       character: 'cat',
       sound: true,
-      events: []         // نجوم جديدة لم تُرسل للمنصة بعد: { stage, stars, at }
+      passed: {},        // عوالم نجح الطالب باختبار تحديد المستوى فيها: { w1: true }
+      askedPlacement: false,
+      events: []         // للمزامنة لاحقاً: { stage, stars, at } أو { world, passed, at }
     };
   }
 
@@ -68,12 +70,21 @@
     };
   }
 
+  /* النجاح بالاختبار بيفتح مراحل العالم بدون نجوم */
+  function worldPassed(id) { return !!(state.passed && state.passed['w' + id]); }
+  function setPassed(id) {
+    if (!state.passed) state.passed = {};
+    if (!state.passed['w' + id]) state.events.push({ world: id, passed: true, at: Date.now() });
+    state.passed['w' + id] = true;
+    save();
+  }
+
   function reset() { state = fresh(); save(); }
 
   DF.store = {
     load: load, save: save, reset: reset,
     get state() { return state; },
     stageStars: stageStars, totalStars: totalStars, points: points,
-    setStageResult: setStageResult
+    setStageResult: setStageResult, worldPassed: worldPassed, setPassed: setPassed
   };
 })(window.DF);

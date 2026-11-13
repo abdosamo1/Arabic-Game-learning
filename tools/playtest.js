@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /* فحص آلي: بيلعب مرحلة كاملة بثلاث مقاسات وبيطبع النتيجة نص.
-   node tools/playtest.js [--world 1] [--stage 1] [--shots <مجلد>]
+   node tools/playtest.js [--world 1] [--stage 1] [--placement] [--shots <مجلد>]
+   --placement: بيفحص اختبار تحديد المستوى (نجاح بغلطة وحدة، ثم رسوب بغلطتين)
    بيحتاج playwright (منصّب بالجلسات السحابية). */
 const http = require('http');
 const fs = require('fs');
@@ -11,6 +12,7 @@ const ROOT = path.resolve(__dirname, '..');
 const args = process.argv.slice(2);
 function arg(name, def) { const i = args.indexOf('--' + name); return i >= 0 ? args[i + 1] : def; }
 const WORLD = +arg('world', 1), STAGE = +arg('stage', 1), SHOTS = arg('shots', null);
+const PLACEMENT = args.includes('--placement');
 const SIZES = [[390, 780, 'phone'], [1024, 768, 'tablet'], [740, 360, 'landscape']];
 const MIME = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.jpg': 'image/jpeg', '.png': 'image/png', '.woff2': 'font/woff2', '.mp3': 'audio/mpeg', '.svg': 'image/svg+xml' };
 
@@ -34,8 +36,12 @@ async function play(browser, port, W, H, tag) {
   await page.goto('http://127.0.0.1:' + port + '/index.html');
   await page.waitForTimeout(400);
   await shot('1-home');
-  if (STAGE === 1) {
+  if (PLACEMENT) {
     await page.click('#btn-play');
+    await page.click('[data-act="placement-yes"]');
+  } else if (STAGE === 1) {
+    await page.click('#btn-play');
+    await page.click('[data-act="placement-no"]');
     await page.click('[data-world="' + WORLD + '"]');
     await page.click('[data-stage="0"]');
     await shot('2-intro');
@@ -54,7 +60,7 @@ async function play(browser, port, W, H, tag) {
     fail('ما وصلت لحالة ' + want);
   };
 
-  const total = await page.evaluate(() => DF.config.questionsPerStage);
+  const total = await page.evaluate(() => DF.ui.game.qs.length);
   for (let q = 0; q < total; q++) {
     let s = await waitFor('wait');
     if (s.correct < 0) fail('سؤال ' + (q + 1) + ' بدون جواب صحيح');
@@ -72,6 +78,29 @@ async function play(browser, port, W, H, tag) {
   await page.waitForSelector('#screen-result:not([hidden])', { timeout: 8000 }).catch(() => fail('شاشة النتيجة ما ظهرت'));
   await page.waitForTimeout(1500);
   await shot('5-result');
+  if (PLACEMENT) {
+    const st = await page.evaluate(() => JSON.parse(localStorage.getItem('darfarah.arabic.v1') || '{}'));
+    if (!st.passed || !st.passed['w' + WORLD]) fail('النجاح بالاختبار ما انحفظ');
+    if (Object.keys(st.stages || {}).length) fail('الاختبار عطى نجوم والمفروض بدون نجوم');
+    await page.click('#btn-next');
+    const locked = await page.locator('#stage-list .stage[disabled]').count();
+    if (locked) fail('ضل في ' + locked + ' مراحل مقفولة بعد النجاح');
+    // رسوب: غلطتين
+    await page.evaluate(w => { DF.store.reset(); DF.ui.startTest(DF.worldById(w)); DF.ui.runner.speed = 9; }, WORLD);
+    for (let k = 0; k < 2; k++) {
+      const s = await waitFor('wait');
+      const wrongLane = [0, 1, 2].filter(l => l !== s.correct)[k];
+      await page.evaluate(l => DF.ui.runner.choose(l), wrongLane);
+      await page.waitForTimeout(400);
+    }
+    await page.waitForSelector('#screen-result:not([hidden])', { timeout: 8000 }).catch(() => fail('شاشة الرسوب ما ظهرت'));
+    const st2 = await page.evaluate(() => DF.store.state.passed);
+    if (st2 && st2['w' + WORLD]) fail('انحسب نجاح مع غلطتين');
+    await shot('6-test-fail');
+    if (errs.length) fail('أخطاء بالمتصفح: ' + errs.slice(0, 3).join(' | '));
+    await ctx.close();
+    return;
+  }
   const id = 'w' + WORLD + 's' + STAGE;
   const saved = await page.evaluate(k => JSON.parse(localStorage.getItem('darfarah.arabic.v1') || '{}').stages[k], id).catch(() => null);
   if (!saved || saved.stars !== 2) fail('التقدّم ما انحفظ صح: ' + JSON.stringify(saved));

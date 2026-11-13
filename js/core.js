@@ -6,6 +6,8 @@ window.DF = window.DF || {};
   DF.config = {
     arabicDigits: false,     // false = 123، true = ١٢٣
     questionsPerStage: 10,
+    testQuestions: 12,       // أسئلة اختبار تحديد المستوى
+    testMaxMistakes: 1,      // الغلطات المسموحة فيه
     starsPerPoint: 4         // كل ٤ نجوم = نقطة مدرسية
   };
 

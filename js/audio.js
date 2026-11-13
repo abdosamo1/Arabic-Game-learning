@@ -124,18 +124,19 @@
   function stop() {
     gen++;
     queue.length = 0;
-    if (current) { current.stop(); current = null; }
-    else if (synth) { try { synth.cancel(); } catch (e) { /* تجاهل */ } }
+    var had = false;
+    if (current) { current.stop(); current = null; had = true; }
+    else if (synth && (synth.speaking || synth.pending)) { try { synth.cancel(); } catch (e) { /* تجاهل */ } had = true; }
     notify();
+    return had;
   }
 
   function say(p, opts) {
     if (!enabled || !p) return;
-    var interrupt = opts && opts.interrupt;
-    if (interrupt) stop();
+    var cut = opts && opts.interrupt ? stop() : false;
     resolve(p).forEach(function (it) { queue.push(it); });
-    if (interrupt) setTimeout(pump, 70);   // كروم بيضيّع الكلام إذا إجا فوراً بعد الإلغاء
-    else pump();
+    if (cut) setTimeout(pump, 80);   // المتصفح بيضيّع الكلام إذا إجا فوراً بعد إلغاء كلام شغّال
+    else pump();                     // بدون إلغاء: الكلام بيطلع فوراً وضمن اللمسة (مهم لآيفون)
   }
 
   /* لازم أول لمسة من الطفل حتى يسمح المتصفح بالصوت */
