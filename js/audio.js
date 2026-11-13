@@ -139,10 +139,19 @@
   }
 
   /* لازم أول لمسة من الطفل حتى يسمح المتصفح بالصوت */
+  /* آيفون: عامل اللعبة كتشغيل وسائط حتى ما ينكتم الصوت بالوضع الصامت (iOS 16.4+) */
+  function mediaSession() {
+    try {
+      if (navigator.audioSession) navigator.audioSession.type = 'playback';
+    } catch (e) { /* تجاهل */ }
+  }
+  mediaSession();
+
   var unlocked = false;
   function unlock() {
     if (unlocked) return;
     unlocked = true;
+    mediaSession();
     ac();
     if (synth) {
       try {
