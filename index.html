@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#cdeaf6">
+<title>رحلة الضاد</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app" dir="rtl" lang="ar">
+
+  <section id="screen-home" class="screen home">
+    <header class="bar">
+      <div class="chips" id="home-chips"></div>
+      <button class="icon-btn" id="btn-settings" type="button" aria-label="الإعدادات"></button>
+    </header>
+    <div class="home-main">
+      <img class="logo" src="assets/img/logo-384.jpg" alt="شعار مدرسة دار الفرح" width="120" height="120">
+      <h1 class="title">رحلة الضاد</h1>
+      <p class="subtitle">نتعلّم العربية مع مدرسة دار الفرح</p>
+      <div class="home-hero" id="home-hero" aria-hidden="true"></div>
+      <div class="home-actions">
+        <button class="btn big" id="btn-play" type="button">العب</button>
+        <button class="btn ghost" id="btn-chars" type="button">الشخصيات</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-worlds" class="screen" hidden>
+    <header class="bar">
+      <button class="icon-btn back" type="button" data-go="home" aria-label="رجوع"></button>
+      <h2 class="bar-title">العوالم</h2>
+      <div class="chips" data-chips></div>
+    </header>
+    <div class="scroll"><div class="world-list" id="world-list"></div></div>
+  </section>
+
+  <section id="screen-stages" class="screen" hidden>
+    <header class="bar">
+      <button class="icon-btn back" type="button" data-go="worlds" aria-label="رجوع"></button>
+      <h2 class="bar-title" id="stages-title"></h2>
+      <div class="chips" data-chips></div>
+    </header>
+    <div class="scroll"><div class="stage-list" id="stage-list"></div></div>
+  </section>
+
+  <section id="screen-intro" class="screen" hidden>
+    <header class="bar">
+      <button class="icon-btn back" type="button" data-go="stages" aria-label="رجوع"></button>
+      <h2 class="bar-title" id="intro-title"></h2>
+      <span class="bar-pad"></span>
+    </header>
+    <div class="scroll intro-body">
+      <p class="lead">اضغط على الحرف لتسمعه</p>
+      <div class="intro-cards" id="intro-cards"></div>
+      <p class="how">في اللعبة: استمع، ثم اضغط على البوابة الصحيحة.</p>
+    </div>
+    <footer class="foot"><button class="btn big" id="btn-start" type="button">هيّا نلعب</button></footer>
+  </section>
+
+  <section id="screen-game" class="screen game" hidden>
+    <canvas id="game-canvas"></canvas>
+    <div class="hud">
+      <button class="icon-btn small" id="btn-pause" type="button" aria-label="إيقاف مؤقت"></button>
+      <div class="progress" aria-hidden="true"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="progress-num" id="progress-num"></div>
+      <div class="hud-stars" id="hud-stars"></div>
+    </div>
+    <div class="prompt" id="prompt">
+      <button class="say-btn" id="btn-say" type="button" aria-label="أعد السؤال"></button>
+      <div class="prompt-show" id="prompt-show"></div>
+      <div class="prompt-text" id="prompt-text"></div>
+    </div>
+    <div class="toast" id="toast" aria-live="polite"></div>
+  </section>
+
+  <section id="screen-result" class="screen result" hidden>
+    <div class="result-main">
+      <div class="result-hero" id="result-hero" aria-hidden="true"></div>
+      <h2 class="result-title" id="result-title"></h2>
+      <div class="result-stars" id="result-stars"></div>
+      <p class="result-note" id="result-note"></p>
+      <div class="result-rows" id="result-rows"></div>
+      <div class="result-unlock" id="result-unlock" hidden></div>
+    </div>
+    <footer class="foot stack">
+      <button class="btn big" id="btn-next" type="button">التالي</button>
+      <div class="row">
+        <button class="btn ghost" id="btn-retry" type="button">إعادة</button>
+        <button class="btn ghost" id="btn-to-stages" type="button">المراحل</button>
+      </div>
+    </footer>
+  </section>
+
+  <section id="screen-chars" class="screen" hidden>
+    <header class="bar">
+      <button class="icon-btn back" type="button" data-go="home" aria-label="رجوع"></button>
+      <h2 class="bar-title">الشخصيات</h2>
+      <div class="chips" data-chips></div>
+    </header>
+    <div class="scroll"><div class="char-grid" id="char-grid"></div></div>
+  </section>
+
+  <div class="modal" id="modal" hidden>
+    <div class="modal-card" id="modal-card" role="dialog" aria-modal="true"></div>
+  </div>
+</div>
+
+<script src="js/core.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/data/audio-manifest.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/data/characters.js"></script>
+<script src="js/data/letters.js"></script>
+<script src="js/data/worlds.js"></script>
+<script src="js/game/questions.js"></script>
+<script src="js/game/draw.js"></script>
+<script src="js/game/runner.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>
