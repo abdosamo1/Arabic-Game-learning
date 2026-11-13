@@ -4,7 +4,7 @@ window.DF = window.DF || {};
   'use strict';
 
   DF.config = {
-    arabicDigits: true,      // ١٢٣ بدل 123
+    arabicDigits: false,     // false = 123، true = ١٢٣
     questionsPerStage: 10,
     starsPerPoint: 4         // كل ٤ نجوم = نقطة مدرسية
   };
