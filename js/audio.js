@@ -139,7 +139,9 @@
   }
 
   /* لازم أول لمسة من الطفل حتى يسمح المتصفح بالصوت */
-  /* آيفون: عامل اللعبة كتشغيل وسائط حتى ما ينكتم الصوت بالوضع الصامت (iOS 16.4+) */
+  /* آيفون والوضع الصامت:
+     ١) نطلب جلسة «تشغيل وسائط» (iOS 16.4+).
+     ٢) نشغّل ملف صوت صامت متكرّر: هيك iOS بيعامل الصفحة كمشغّل وسائط وما بيكتم المؤثرات. */
   function mediaSession() {
     try {
       if (navigator.audioSession) navigator.audioSession.type = 'playback';
@@ -147,24 +149,66 @@
   }
   mediaSession();
 
-  var unlocked = false;
+  var keep = null;
+  function silentWav() {
+    var n = 2000, h = 'RIFF' + le(36 + n, 4) + 'WAVEfmt ' + le(16, 4) + le(1, 2) + le(1, 2) + le(8000, 4) + le(8000, 4) + le(1, 2) + le(8, 2) + 'data' + le(n, 4);
+    function le(v, bytes) { var o = ''; for (var i = 0; i < bytes; i++) o += String.fromCharCode((v >> (8 * i)) & 255); return o; }
+    var body = ''; for (var i = 0; i < n; i++) body += '\x80';
+    return 'data:audio/wav;base64,' + btoa(h + body);
+  }
+  function keepAlive() {
+    if (!enabled) return;
+    try {
+      if (!keep) {
+        keep = new Audio(silentWav());
+        keep.loop = true;
+        keep.setAttribute('playsinline', '');
+      }
+      if (keep.paused) { var pr = keep.play(); if (pr && pr.catch) pr.catch(function () { /* تجاهل */ }); }
+    } catch (e) { /* تجاهل */ }
+  }
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden && keep) { try { keep.pause(); } catch (e) { /* تجاهل */ } }
+  });
+
+  /* المتصفح ما بيسمح بالصوت إلا من لمسة حقيقية. آيفون ما بيحسب pointerdown لمسة، فبنستنى touchend/click،
+     وبنعيد المحاولة مع كل لمسة لحتى يشتغل. */
+  var primed = false;
   function unlock() {
-    if (unlocked) return;
-    unlocked = true;
     mediaSession();
+    keepAlive();
     ac();
-    if (synth) {
+    if (synth && !primed) {
       try {
         var u = new SpeechSynthesisUtterance(' ');
         u.volume = 0; u.lang = 'ar-SA';
+        u.onstart = function () { primed = true; };
+        u.onend = function () { primed = true; };
         synth.speak(u);
       } catch (e) { /* تجاهل */ }
     }
   }
 
+  /* سطر تشخيص بيظهر بالإعدادات */
+  function diag() {
+    var vs = [];
+    try { vs = (synth && synth.getVoices()) || []; } catch (e) { /* تجاهل */ }
+    var ar = vs.filter(function (v) { return /^ar/i.test(v.lang); });
+    var ses = '-';
+    try { ses = navigator.audioSession ? navigator.audioSession.type : 'none'; } catch (e) { ses = 'err'; }
+    return 'ctx=' + (ctx ? ctx.state : 'no') + ' ses=' + ses + ' keep=' + (keep ? (keep.paused ? 'paused' : 'on') : 'no') +
+      ' tts=' + (synth ? 'yes' : 'no') + ' voices=' + vs.length + ' ar=' + ar.length + (voice ? '(' + voice.lang + ')' : '') + ' primed=' + (primed ? 1 : 0);
+  }
+
+  function test() {
+    unlock();
+    sfx('correct');
+    say({ text: 'مرحباً', say: 'مَرْحَبًا. أَيْنَ حَرْفُ الْبَاء؟' }, { interrupt: true });
+  }
+
   DF.audio = {
-    sfx: sfx, say: say, stop: stop, unlock: unlock,
-    setEnabled: function (on) { enabled = !!on; if (!enabled) stop(); },
+    sfx: sfx, say: say, stop: stop, unlock: unlock, diag: diag, test: test,
+    setEnabled: function (on) { enabled = !!on; if (!enabled) { stop(); if (keep) { try { keep.pause(); } catch (e) { /* تجاهل */ } } } },
     isEnabled: function () { return enabled; },
     onSpeaking: function (fn) { listeners.push(fn); }
   };

@@ -151,8 +151,10 @@
     var on = store.state.sound;
     modal('<h2 class="modal-title">الإعدادات</h2>' +
       '<button class="btn ' + (on ? 'green' : 'ghost') + '" type="button" data-act="sound">الصوت: ' + (on ? 'شغّال' : 'مطفأ') + '</button>' +
+      '<button class="btn ghost" type="button" data-act="test-sound">جرّب الصوت</button>' +
       '<button class="btn ghost" type="button" data-act="reset">مسح التقدّم</button>' +
       '<p class="modal-note">التقدّم محفوظ على هذا الجهاز فقط.</p>' +
+      '<p class="modal-diag" id="diag" dir="ltr">' + U.esc(audio.diag()) + '</p>' +
       '<button class="btn" type="button" data-act="close">تم</button>');
   }
 
@@ -313,7 +315,9 @@
 
   /* ---------- الأحداث ---------- */
   function bind() {
-    document.addEventListener('pointerdown', function () { audio.unlock(); }, { capture: true });
+    ['touchend', 'click', 'keydown'].forEach(function (ev) {
+      document.addEventListener(ev, function () { audio.unlock(); }, { capture: true, passive: true });
+    });
 
     var backs = document.querySelectorAll('.icon-btn.back');
     for (var i = 0; i < backs.length; i++) backs[i].innerHTML = IC.back;
@@ -377,6 +381,11 @@
 
   function onAction(act, btn) {
     if (act === 'close') { closeModal(); return; }
+    if (act === 'test-sound') {
+      audio.test();
+      setTimeout(function () { var d = $('diag'); if (d) d.textContent = audio.diag(); }, 1200);
+      return;
+    }
     if (act === 'sound') {
       store.state.sound = !store.state.sound;
       store.save();

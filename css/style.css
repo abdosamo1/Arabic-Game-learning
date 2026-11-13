@@ -304,6 +304,8 @@ h1, h2, p { margin: 0; }
 .modal-title { font-family: var(--font-display); font-size: 1.7rem; line-height: 1.3; }
 .modal-card .btn { min-width: 220px; }
 .modal-note { color: var(--ink-soft); font-size: .95rem; }
+.modal-diag { color: var(--ink-soft); font: 11px/1.4 ui-monospace, Menlo, monospace; word-break: break-all; -webkit-user-select: text; user-select: text; }
+.modal-card { max-height: 100%; overflow-y: auto; gap: 14px; }
 
 /* موبايل بالعرض: ارتفاع قليل */
 @media (max-height: 520px) {
