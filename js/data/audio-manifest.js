@@ -11,7 +11,8 @@
      this-is        «هذا حرف»
      retry          «حاول مرة أخرى»
      syl-<حرف>-<حركة>   المقطع (syl-ba-fatha = «بَ»)
-     haraka-<id>         اسم الحركة (haraka-fatha = «الفتحة»)
+     haraka-<id>         اسم الحركة أو المد (haraka-fatha = «الفتحة»، haraka-madd-alif = «مدّ الألف»)
+     syl-<حرف>-madd-*    المقطع الطويل (syl-ba-madd-alif = «بَا»)
      praise-1..4    «أحسنت» «ممتاز» «رائع» «صحيح»
 
    معرّفات الحروف والكلمات موجودة في js/data/letters.js */

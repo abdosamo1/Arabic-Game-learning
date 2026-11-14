@@ -1,4 +1,4 @@
-/* العوالم العشرة. الجاهز: ١ و٢. الباقي عدد مراحل بدون محتوى. */
+/* العوالم العشرة. الجاهز: ١ و٢ و٣. الباقي عدد مراحل بدون محتوى. */
 window.DF = window.DF || {};
 (function (DF) {
   'use strict';
@@ -30,7 +30,7 @@ window.DF = window.DF || {};
   DF.WORLDS = [
     { id: 1, title: 'حديقة الحروف', topic: 'الحروف', grade: 'روضة', icon: '🌳', color: '#7fb069', speed: 'slow', stages: letterStages() },
     { id: 2, title: 'تلّة الحركات', topic: 'الحركات: تَ تُ تِ', grade: 'روضة – أول', icon: '🎈', color: '#f2a93b', speed: 'slow', stages: DF.harakatStages() },
-    { id: 3, title: 'جسر المدود', topic: 'المدود', grade: 'أول', icon: '🌉', color: '#4a9fd8', speed: 'slow', count: 6 },
+    { id: 3, title: 'جسر المدود', topic: 'المدود', grade: 'أول', icon: '🌉', color: '#4a9fd8', speed: 'slow', stages: DF.mududStages() },
     { id: 4, title: 'كهف السكون', topic: 'السكون وأشكال الحرف', grade: 'أول', icon: '⛰️', color: '#8d7fc7', speed: 'slow', count: 5 },
     { id: 5, title: 'قلعة الشدّة', topic: 'التنوين والشدّة', grade: 'أول – ثاني', icon: '🏰', color: '#e08a5b', speed: 'slow', count: 5 },
     { id: 6, title: 'سوق الكلمات', topic: 'كلمات وصور', grade: 'ثاني', icon: '🧺', color: '#d96c8a', speed: 'medium', count: 8 },

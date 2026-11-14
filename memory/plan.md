@@ -6,8 +6,8 @@
 |---|---|---|---|---|---|---|
 | 1 | حديقة الحروف | Letters | KG | 7 | slow | Built, waiting for user feedback |
 | 2 | تلّة الحركات | Harakat تَ تُ تِ | KG–1 | 7 | slow | Built, waiting for user feedback |
-| 3 | جسر المدود | Long vowels | 1 | 6 | slow | Next |
-| 4 | كهف السكون | Sukun and letter forms | 1 | 5 | slow | — |
+| 3 | جسر المدود | Long vowels | 1 | 6 | slow | Built, waiting for user feedback |
+| 4 | كهف السكون | Sukun and letter forms | 1 | 5 | slow | Next |
 | 5 | قلعة الشدّة | Tanwin and shadda | 1–2 | 5 | slow | — |
 | 6 | سوق الكلمات | Words and pictures | 2 | 8 | medium | — |
 | 7 | ورشة الإملاء | Missing letter, similar-sounding letters, sun and moon lam, ta forms | 2–3 | 8 | medium | — |
@@ -27,11 +27,17 @@ Speed: slow = no timer, the character waits at the gates. Medium and fast = no w
 
 Stages 1–4: hear a syllable and pick it among other letters with the same haraka, plus pictures. Stages 5–7: tell the harakat apart on one letter. Question types are in `harakaQ` in `js/game/questions.js`; data in `js/data/harakat.js`. Words followed by a long vowel or diphthong (حُوت, بَيْت) are left out for world 3.
 
+## World 3 (built, breakdown approved by the user)
+
+1. Madd alif (بَا). 2. Madd waw (بُو). 3. Madd ya (بِي). 4. Short or long (بَ / بَا). 5. The three mudud on one letter plus first sound of a pictured word. 6. Full review.
+
+Uses the same generator as world 2 (`soundQ` / `soundSet` in `js/game/questions.js`, driven by a sound system: harakat or mudud) plus a `short-long` type. Data and its own word list (26 words whose first syllable is long) are in `js/data/mudud.js`.
+
 ## Placement test (built)
 
 Offered once on first play, and as a card on the stages screen. 12 questions across all stages of the world, harder distractors, 1 mistake allowed (2 hearts). Passing opens all stages of the world with no stars. Each world needs its own test generator in `TESTS` in `js/game/questions.js`. After a pass, the result button leads to the next world.
 
 ## Waiting
 
-- User feedback on worlds 1 and 2 before continuing. In particular: how the device voice pronounces single syllables (see decisions).
+- User feedback on worlds 1, 2 and 3 before continuing. In particular: how the device voice pronounces single syllables (see decisions).
 - Later: teacher recordings, images instead of emoji, mosque platform integration, a stable public link (GitHub Pages needs a `main` branch and Pages enabled).

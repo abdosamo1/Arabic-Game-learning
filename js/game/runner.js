@@ -154,6 +154,12 @@
     c.textAlign = 'center'; c.textBaseline = 'alphabetic';
     c.fillStyle = '#2c3a26';
     var mt = c.measureText(text);
+    var tw = mt.actualBoundingBoxLeft + mt.actualBoundingBoxRight;
+    if (isFinite(tw) && tw > w * 0.78) {   // نص عريض (مقطع من حرفين): صغّره ليدخل بالبطاقة
+      size *= w * 0.78 / tw;
+      c.font = c.font.replace(/[\d.]+px/, size + 'px');
+      mt = c.measureText(text);
+    }
     var asc = mt.actualBoundingBoxAscent, desc = mt.actualBoundingBoxDescent;
     var bx = (mt.actualBoundingBoxRight - mt.actualBoundingBoxLeft) / 2;
     if (!isFinite(asc) || !isFinite(desc)) { asc = size * 0.7; desc = size * 0.2; bx = 0; }

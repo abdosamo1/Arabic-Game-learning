@@ -18,8 +18,8 @@ The character runs along three lanes toward three gates, with the camera behind 
 |---|---|---|---|---|---|
 | 1 | Letter Garden | The 28 letters | KG | 7 | Built |
 | 2 | Harakat Hill | Short vowels (fatha, damma, kasra) | KG–1 | 7 | Built |
-| 3 | Madd Bridge | Long vowels | 1 | 6 | Next |
-| 4 | Sukun Cave | Sukun and letter forms | 1 | 5 | Planned |
+| 3 | Madd Bridge | Long vowels (alif, waw, ya) | 1 | 6 | Built |
+| 4 | Sukun Cave | Sukun and letter forms | 1 | 5 | Next |
 | 5 | Shadda Castle | Tanwin and shadda | 1–2 | 5 | Planned |
 | 6 | Word Market | Words and pictures | 2 | 8 | Planned |
 | 7 | Spelling Workshop | Basic spelling | 2–3 | 8 | Planned |
@@ -27,7 +27,7 @@ The character runs along three lanes toward three gates, with the camera behind 
 | 9 | Word City | Parts of speech, tenses, pronouns, hamza | 4–5 | 8 | Planned |
 | 10 | Grammar Summit | Sentences and i'rab | 5–6 | 8 | Planned |
 
-Each stage has 10 questions. World 1 has three question types: find the letter you hear, pick the first letter of a pictured word, and pick the picture that starts with a letter. World 2 asks for a syllable (letter plus haraka), for a haraka by name, and for the first sound of a pictured word.
+Each stage has 10 questions. World 1 has three question types: find the letter you hear, pick the first letter of a pictured word, and pick the picture that starts with a letter. World 2 asks for a syllable (letter plus haraka), for a haraka by name, and for the first sound of a pictured word. World 3 does the same with long vowels and adds short-versus-long questions.
 
 A world opens when the previous one is finished or its placement test is passed.
 
@@ -56,6 +56,7 @@ The script needs Playwright. It prints `PASS` or `FAIL` as text. Audio is not co
 | `index.html`, `css/style.css` | Screens and styling |
 | `js/data/letters.js` | Letters, words and emoji |
 | `js/data/harakat.js` | Harakat, syllables and world 2 stages |
+| `js/data/mudud.js` | Long vowels, their words and world 3 stages |
 | `js/data/worlds.js` | Worlds, stages and speeds |
 | `js/data/characters.js` | Characters and the stars they need |
 | `js/data/audio-manifest.js` | Recorded audio files |
