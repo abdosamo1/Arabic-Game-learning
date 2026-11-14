@@ -1,4 +1,4 @@
-/* العوالم العشرة. الجاهز هلق: العالم ١ فقط. الباقي عدد مراحل بدون محتوى. */
+/* العوالم العشرة. الجاهز: ١ و٢. الباقي عدد مراحل بدون محتوى. */
 window.DF = window.DF || {};
 (function (DF) {
   'use strict';
@@ -14,14 +14,22 @@ window.DF = window.DF || {};
     var ids = DF.LETTERS.map(function (L) { return L.id; });
     var out = [];
     for (var i = 0; i < 7; i++) {
-      out.push({ id: 'w1s' + (i + 1), kind: 'letters', letters: ids.slice(i * 4, i * 4 + 4) });
+      var mine = ids.slice(i * 4, i * 4 + 4);
+      out.push({
+        id: 'w1s' + (i + 1), kind: 'letters', letters: mine,
+        label: mine.map(function (id) { return DF.LETTER[id].char; }),
+        cards: mine.map(function (id) {
+          var L = DF.LETTER[id], wd = L.words[0];
+          return { big: L.char, word: wd, say: { id: 'intro-' + L.id, text: L.name, say: L.say + '. ' + wd.say, parts: ['name-' + L.id, 'word-' + wd.id] } };
+        })
+      });
     }
     return out;
   }
 
   DF.WORLDS = [
     { id: 1, title: 'حديقة الحروف', topic: 'الحروف', grade: 'روضة', icon: '🌳', color: '#7fb069', speed: 'slow', stages: letterStages() },
-    { id: 2, title: 'تلّة الحركات', topic: 'الحركات: تَ تُ تِ', grade: 'روضة – أول', icon: '🎈', color: '#f2a93b', speed: 'slow', count: 7 },
+    { id: 2, title: 'تلّة الحركات', topic: 'الحركات: تَ تُ تِ', grade: 'روضة – أول', icon: '🎈', color: '#f2a93b', speed: 'slow', stages: DF.harakatStages() },
     { id: 3, title: 'جسر المدود', topic: 'المدود', grade: 'أول', icon: '🌉', color: '#4a9fd8', speed: 'slow', count: 6 },
     { id: 4, title: 'كهف السكون', topic: 'السكون وأشكال الحرف', grade: 'أول', icon: '⛰️', color: '#8d7fc7', speed: 'slow', count: 5 },
     { id: 5, title: 'قلعة الشدّة', topic: 'التنوين والشدّة', grade: 'أول – ثاني', icon: '🏰', color: '#e08a5b', speed: 'slow', count: 5 },

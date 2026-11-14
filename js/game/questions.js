@@ -17,6 +17,7 @@
 
   /* وصف الخيار الغلط بعد ما يخبط فيه الطفل */
   function describe(opt) {
+    if (opt.describe) return opt.describe;
     if (opt.kind === 'letter') {
       return { id: 'this-' + opt.letter.id, text: 'هذا حرف ' + opt.letter.name, say: 'هَذَا حَرْفُ ' + opt.letter.sayDef, parts: ['this-is', 'harf-' + opt.letter.id] };
     }
@@ -121,8 +122,85 @@
     });
   }
 
-  var BUILDERS = { letters: buildLetters };
-  var TESTS = { letters: testLetters };
+  /* ---------- أسئلة الحركات ---------- */
+  function seal(q, opts) {
+    var order = U.shuffle([0, 1, 2]);
+    q.options = order.map(function (k) { return opts[k]; });
+    q.correct = order.indexOf(0);
+    return q;
+  }
+
+  function sylOpt(L, h) {
+    var s = DF.syl(L, h);
+    return { kind: 'text', key: s.key, text: s.text,
+      describe: { id: 'this-syl-' + s.key, text: s.text, say: s.say + '. ' + L.sayDef + ' مَعَ ' + h.say, parts: ['syl-' + s.key] } };
+  }
+
+  function otherLetters(L, pool) {
+    var sim = U.shuffle((DF.SIMILAR[L.id] || []).filter(function (id) { return pool.indexOf(id) >= 0; }));
+    var rest = U.shuffle(pool.filter(function (id) { return id !== L.id && sim.indexOf(id) < 0; }));
+    return sim.slice(0, 1).concat(rest).slice(0, 2).map(function (id) { return DF.LETTER[id]; });
+  }
+  function otherHarakat(h) { return U.shuffle(DF.HARAKAT.filter(function (x) { return x !== h; })); }
+
+  /* الأنواع: syl-listen (نفس الحركة، حروف مختلفة)، syl-same (نفس الحرف، ثلاث حركات)،
+     haraka-name (أين الفتحة؟)، pic-one / pic-same (الصوت الأول بالكلمة)، mix (حرف وحركة) */
+  function harakaQ(type, L, h, pool, entry) {
+    var s = DF.syl(L, h), q = { type: type, answer: s.key }, wrong;
+    var sameLetter = otherHarakat(h).map(function (x) { return sylOpt(L, x); });
+    function sameHaraka() { return otherLetters(L, pool).map(function (X) { return sylOpt(X, h); }); }
+
+    if (type === 'haraka-name') {
+      q.prompt = { id: 'q-haraka-' + h.id, text: 'أين ' + h.name + '؟', say: 'أَيْنَ ' + h.say + '؟', parts: ['q-where-haraka', 'haraka-' + h.id] };
+      q.show = { kind: 'listen' };
+      wrong = sameLetter;
+    } else if (type === 'pic-one' || type === 'pic-same') {
+      var w = entry.word;
+      q.prompt = { id: 'q-sound-' + w.id, text: 'ما الصوت الأول في الكلمة؟', say: w.say + '. مَا الصَّوْتُ الْأَوَّلُ فِي كَلِمَةِ ' + w.say + '؟', parts: ['word-' + w.id, 'q-first-sound', 'word-' + w.id] };
+      q.show = { kind: 'pic', word: w };
+      q.noRepeat = true;
+      wrong = type === 'pic-one' ? sameHaraka() : sameLetter;
+    } else {
+      q.prompt = { id: 'q-syl-' + s.key, text: 'أين ' + L.name + ' مع ' + h.name + '؟', say: s.say + '. أَيْنَ ' + L.sayDef + ' مَعَ ' + h.say + '؟', parts: ['syl-' + s.key, 'q-where-syl-' + s.key] };
+      q.show = { kind: 'listen' };
+      if (type === 'syl-listen') wrong = sameHaraka();
+      else if (type === 'syl-same') wrong = sameLetter;
+      else wrong = [sameLetter[0], sameHaraka()[0]];
+    }
+    return seal(q, [sylOpt(L, h)].concat(wrong));
+  }
+
+  function harakaSet(types, pool, fixed) {
+    var letters = U.shuffle(pool), li = 0, hs = [], used = {};
+    function nextH() { if (!hs.length) hs = U.shuffle(DF.HARAKAT); return hs.pop(); }
+    return types.map(function (type) {
+      var h = fixed || nextH();
+      if (type === 'pic-one' || type === 'pic-same') {
+        var c = DF.HARAKA_WORDS.filter(function (e) {
+          return pool.indexOf(e.letter.id) >= 0 && (type === 'pic-same' || e.haraka === h);
+        });
+        var fresh = c.filter(function (e) { return !used[e.word.id]; });
+        var e = U.pick(fresh.length ? fresh : c);
+        used[e.word.id] = true;
+        return harakaQ(type, e.letter, e.haraka, pool, e);
+      }
+      var L = DF.LETTER[letters[li++ % letters.length]];
+      return harakaQ(type, L, h, pool);
+    });
+  }
+
+  function buildHarakat(world, si) {
+    var st = world.stages[si];
+    return harakaSet(st.types, st.letters, st.haraka ? DF.HARAKA[st.haraka] : null);
+  }
+
+  function testHarakat() {
+    var types = ['mix', 'mix', 'mix', 'mix', 'mix', 'syl-same', 'syl-same', 'syl-same', 'pic-same', 'pic-same', 'pic-same', 'haraka-name'];
+    return harakaSet(U.shuffle(types).slice(0, DF.config.testQuestions), DF.LETTERS.map(function (L) { return L.id; }), null);
+  }
+
+  var BUILDERS = { letters: buildLetters, harakat: buildHarakat };
+  var TESTS = { letters: testLetters, harakat: testHarakat };
 
   DF.Q = {
     build: function (world, si) { return BUILDERS[world.stages[si].kind](world, si); },

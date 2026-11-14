@@ -36,10 +36,12 @@ async function play(browser, port, W, H, tag) {
   await page.goto('http://127.0.0.1:' + port + '/index.html');
   await page.waitForTimeout(400);
   await shot('1-home');
-  if (PLACEMENT) {
+  if (PLACEMENT && WORLD > 1) {
+    await page.evaluate(w => { for (let i = 1; i < w; i++) DF.store.setPassed(i); DF.ui.startTest(DF.worldById(w)); }, WORLD);
+  } else if (PLACEMENT) {
     await page.click('#btn-play');
     await page.click('[data-act="placement-yes"]');
-  } else if (STAGE === 1) {
+  } else if (STAGE === 1 && WORLD === 1) {
     await page.click('#btn-play');
     await page.click('[data-act="placement-no"]');
     await page.click('[data-world="' + WORLD + '"]');
@@ -83,6 +85,10 @@ async function play(browser, port, W, H, tag) {
     if (!st.passed || !st.passed['w' + WORLD]) fail('النجاح بالاختبار ما انحفظ');
     if (Object.keys(st.stages || {}).length) fail('الاختبار عطى نجوم والمفروض بدون نجوم');
     await page.click('#btn-next');
+    // بعد النجاح الزر بيودّي للعالم التالي إذا جاهز: نرجع لمراحل العالم المفحوص
+    await page.click('#screen-stages .back');
+    if (await page.locator('[data-world="' + (WORLD + 1) + '"][disabled]').count() && await page.evaluate(w => !!(DF.worldById(w + 1) || {}).ready, WORLD)) fail('العالم التالي ما انفتح بعد النجاح');
+    await page.click('[data-world="' + WORLD + '"]');
     const locked = await page.locator('#stage-list .stage[disabled]').count();
     if (locked) fail('ضل في ' + locked + ' مراحل مقفولة بعد النجاح');
     // رسوب: غلطتين

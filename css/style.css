@@ -206,6 +206,7 @@ h1, h2, p { margin: 0; }
 }
 .letter-card:active, .letter-card.on { transform: translateY(3px); box-shadow: 0 2px 0 var(--paper-edge); background: #fff6d8; }
 .letter-big { font-size: clamp(3.2rem, 15vw, 4.6rem); font-weight: 500; line-height: 1.45; color: var(--olive-deep); }
+.letter-big.small { font-size: clamp(2rem, 9vw, 2.8rem); line-height: 2.1; }
 .letter-word { display: flex; align-items: center; gap: 8px; font-size: 1.15rem; color: var(--ink-soft); }
 .letter-word .emoji { font-size: 1.7rem; }
 .pic-img { width: 1.6em; height: 1.6em; object-fit: contain; }

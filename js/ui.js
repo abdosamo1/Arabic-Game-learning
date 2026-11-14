@@ -38,6 +38,16 @@
     return w.stages.reduce(function (n, s) { return n + store.stageStars(s.id); }, 0);
   }
 
+  /* العالم بينفتح إذا اللي قبله خلص (نجمة بكل مرحلة) أو نجح الطالب باختباره */
+  function worldDone(w) {
+    return store.worldPassed(w.id) || (w.stages && w.stages.every(function (s) { return store.stageStars(s.id) > 0; }));
+  }
+  function worldOpen(w) {
+    var i = DF.WORLDS.indexOf(w);
+    return w.ready && (i === 0 || worldDone(DF.WORLDS[i - 1]));
+  }
+  function nextWorld(w) { return DF.WORLDS[DF.WORLDS.indexOf(w) + 1]; }
+
   function stageOpen(w, i) { return i === 0 || store.worldPassed(w.id) || store.stageStars(w.stages[i - 1].id) > 0; }
   function hearts(n, max) {
     var h = '';
@@ -79,10 +89,10 @@
   RENDER.worlds = function () {
     fillChips();
     $('world-list').innerHTML = DF.WORLDS.map(function (w) {
-      var side = w.ready
-        ? IC.star + '<span class="frac">' + U.num(worldStars(w)) + ' / ' + U.num(w.count * 3) + '</span>'
-        : '<span class="soon">قريباً</span>';
-      return '<button class="world" type="button" data-world="' + w.id + '"' + (w.ready ? '' : ' disabled') + '>' +
+      var open = worldOpen(w);
+      var side = !w.ready ? '<span class="soon">قريباً</span>' : !open ? IC.lock : IC.star + '<span class="frac">' + U.num(worldStars(w)) + ' / ' + U.num(w.count * 3) + '</span>'
+        ;
+      return '<button class="world" type="button" data-world="' + w.id + '"' + (open ? '' : ' disabled') + '>' +
         '<span class="world-icon" style="background:' + w.color + '33">' + w.icon + '</span>' +
         '<span class="world-text"><span class="world-name">' + U.num(w.id) + '. ' + w.title + '</span><br>' +
         '<span class="world-meta">' + w.topic + ' · ' + w.grade + '</span></span>' +
@@ -100,7 +110,7 @@
       var open = stageOpen(w, i), got = store.stageStars(s.id);
       var isNext = open && got === 0 && !nextMarked;
       if (isNext) nextMarked = true;
-      var label = s.letters.map(function (id) { return '<span>' + DF.LETTER[id].char + '</span>'; }).join('');
+      var label = s.label.map(function (t) { return '<span>' + t + '</span>'; }).join('');
       return '<button class="stage' + (isNext ? ' next' : '') + '" type="button" data-stage="' + i + '"' + (open ? '' : ' disabled') +
         ' aria-label="المرحلة ' + U.num(i + 1) + '">' +
         '<span class="stage-num">' + (open ? U.num(i + 1) : IC.lock) + '</span>' +
@@ -123,21 +133,20 @@
   RENDER.intro = function () {
     var w = view.world, s = w.stages[view.stage];
     $('intro-title').textContent = 'المرحلة ' + U.num(view.stage + 1);
-    $('intro-cards').innerHTML = s.letters.map(function (id) {
-      var L = DF.LETTER[id], wd = L.words[0];
-      return '<button class="letter-card" type="button" data-letter="' + id + '" aria-label="حرف ' + L.name + '">' +
-        '<span class="letter-big">' + L.char + '</span>' +
-        '<span class="letter-word">' + pic(wd) + '<span>' + wd.text + '</span></span></button>';
+    $('intro-cards').innerHTML = s.cards.map(function (c, i) {
+      return '<button class="letter-card" type="button" data-card="' + i + '" aria-label="' + U.esc(c.say.text) + '">' +
+        '<span class="letter-big' + (c.small ? ' small' : '') + '">' + c.big + '</span>' +
+        '<span class="letter-word">' + (c.word ? pic(c.word) + '<span>' + c.word.text + '</span>' : '<span>' + c.sub + '</span>') + '</span></button>';
     }).join('');
   };
 
   function sayLetterCard(btn) {
-    var L = DF.LETTER[btn.getAttribute('data-letter')], wd = L.words[0];
+    var c = view.world.stages[view.stage].cards[+btn.getAttribute('data-card')];
     var on = document.querySelectorAll('.letter-card.on');
     for (var i = 0; i < on.length; i++) on[i].classList.remove('on');
     btn.classList.add('on');
     setTimeout(function () { btn.classList.remove('on'); }, 900);
-    audio.say({ id: 'intro-' + L.id, text: L.name, say: L.say + '. ' + wd.say, parts: ['name-' + L.id, 'word-' + wd.id] }, { interrupt: true });
+    audio.say(c.say, { interrupt: true });
   }
 
   /* ---------- الشخصيات ---------- */
@@ -289,7 +298,7 @@
       if (!game || game.done || current !== 'game') return;
       audio.say(DF.Q.describe(q.options[lane]));
       audio.say(DF.Q.retry);
-      if (q.type !== 'pic2letter') audio.say(q.prompt);
+      if (q.type !== 'pic2letter' && !q.noRepeat) audio.say(q.prompt);
     }, 350);
   });
 
@@ -327,7 +336,8 @@
     $('result-stars').hidden = true;
     $('result-rows').innerHTML = '';
     $('result-unlock').hidden = true;
-    $('btn-next').textContent = 'المراحل';
+    var nw = nextWorld(game.world);
+    $('btn-next').textContent = res.pass && nw && nw.ready ? 'العالم التالي' : 'المراحل';
     $('btn-retry').hidden = res.pass;
     $('btn-to-stages').hidden = true;
   }
@@ -403,7 +413,7 @@
         view.stage = +t.getAttribute('data-stage');
         show('intro'); return;
       }
-      if (t.hasAttribute('data-letter')) { sayLetterCard(t); return; }
+      if (t.hasAttribute('data-card')) { sayLetterCard(t); return; }
       if (t.hasAttribute('data-char')) {
         store.state.character = t.getAttribute('data-char');
         store.save();
@@ -437,7 +447,11 @@
     $('btn-to-stages').addEventListener('click', function () { clearTimers(); show('stages'); });
     $('btn-next').addEventListener('click', function () {
       clearTimers();
-      if (game.test) { show('stages'); return; }
+      if (game.test) {
+        var nw = nextWorld(game.world);
+        if (game.result.pass && nw && nw.ready) view.world = nw;
+        show('stages'); return;
+      }
       if (game.si + 1 < game.world.stages.length) { view.stage = game.si + 1; show('intro'); }
       else show('worlds');
     });
