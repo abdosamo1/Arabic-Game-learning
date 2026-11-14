@@ -80,7 +80,7 @@
     fillChips();
     $('world-list').innerHTML = DF.WORLDS.map(function (w) {
       var side = w.ready
-        ? IC.star + '<span>' + U.num(worldStars(w)) + ' / ' + U.num(w.count * 3) + '</span>'
+        ? IC.star + '<span class="frac">' + U.num(worldStars(w)) + ' / ' + U.num(w.count * 3) + '</span>'
         : '<span class="soon">قريباً</span>';
       return '<button class="world" type="button" data-world="' + w.id + '"' + (w.ready ? '' : ' disabled') + '>' +
         '<span class="world-icon" style="background:' + w.color + '33">' + w.icon + '</span>' +
@@ -148,7 +148,7 @@
       var open = total >= ch.need, state, cls = 'char';
       if (ch.id === sel) { cls += ' selected'; state = 'معك الآن'; }
       else if (open) { cls += ' open'; state = 'اختيار'; }
-      else state = IC.lock + '<span>' + U.num(total) + ' / ' + U.num(ch.need) + '</span>' + IC.star;
+      else state = IC.lock + '<span class="frac">' + U.num(total) + ' / ' + U.num(ch.need) + '</span>' + IC.star;
       return '<button class="' + cls + '" type="button" data-char="' + ch.id + '"' + (open ? '' : ' disabled') + '>' +
         em(ch.emoji) + '<span class="char-name">' + ch.name + '</span><span class="char-kind">' + ch.kind + '</span>' +
         '<span class="char-state">' + state + '</span>' +

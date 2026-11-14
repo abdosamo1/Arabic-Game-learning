@@ -68,6 +68,8 @@ button:focus-visible { outline: 3px solid var(--olive-deep); outline-offset: 3px
 
 h1, h2, p { margin: 0; }
 
+/* x / y لازم تنعرض بنفس الترتيب بصفحة من اليمين لليسار */
+.frac { direction: ltr; unicode-bidi: isolate; white-space: nowrap; }
 .emoji { font-family: var(--font-emoji); font-style: normal; line-height: 1; }
 
 /* ---------- أزرار ---------- */
