@@ -4,7 +4,7 @@ window.DF = window.DF || {};
 window.DF.CHARACTERS = [
   { id: 'cat', name: 'مشمش', kind: 'القطة', emoji: '🐱', need: 0, ears: 'cat', tail: 'cat',
     colors: { body: '#f4a259', dark: '#c9772f', pack: '#3f86cf', packDark: '#2f69a6' } },
-  { id: 'rabbit', name: 'قطن', kind: 'الأرنب', emoji: '🐰', need: 15, ears: 'rabbit', tail: 'puff',
+  { id: 'rabbit', name: 'نطّوط', kind: 'الأرنب', emoji: '🐰', need: 15, ears: 'rabbit', tail: 'puff',
     colors: { body: '#f7f4ef', dark: '#cbc3b6', pack: '#e56b8a', packDark: '#c24f6d' } },
   { id: 'bear', name: 'دبدوب', kind: 'الدب', emoji: '🐻', need: 40, ears: 'round', tail: 'nub',
     colors: { body: '#a8744a', dark: '#7d5232', pack: '#5aa86b', packDark: '#3f8450' } },

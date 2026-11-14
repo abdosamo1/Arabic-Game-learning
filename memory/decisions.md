@@ -21,7 +21,7 @@
 ## From Claude (user has neither objected nor confirmed; can change)
 
 - Game name: "رحلة الضاد".
-- World names (in the plan) and characters: مشمش the cat, قطن the rabbit, دبدوب the bear, فهيم the fox, بندق the panda, ليث the lion.
+- World names (in the plan) and characters: مشمش the cat, نطّوط the rabbit, دبدوب the bear, فهيم the fox, بندق the panda, ليث the lion.
 - Tapping a gate is a final choice. A wrong gate closes and the child tries another. No losing; the minimum is one star.
 - After a mistake the game says the name of the chosen letter, then "try again".
 - An intro screen shows the stage's letters before play.
