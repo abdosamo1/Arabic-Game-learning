@@ -82,6 +82,10 @@ DF.WORD_IMAGES = { batta: 'assets/img/words/batta.png' };
 
 The game is standalone today. New stars and passed placement tests are logged in `state.events` in `js/storage.js`, ready to be sent to the mosque platform's accounts and points later.
 
+## Deploying
+
+Static site, so Vercel needs no build: Framework Preset "Other", empty build command and output directory. Search engines are told not to index it (`<meta name="robots">` in `index.html`, `robots.txt`, and an `X-Robots-Tag` header in `vercel.json`). Progress is stored per domain, so pick the final domain before students start.
+
 ## Credits
 
 Thmanyah typeface in `assets/fonts`. Noto Naskh Arabic is under the OFL (`assets/fonts/NotoNaskhArabic-OFL.txt`).
