@@ -12,7 +12,7 @@ Add world number $ARGUMENTS.
 4. `js/data/worlds.js`: replace the world's `count` with `stages`. Each stage is `{ id: 'w<W>s<S>', kind: '<kind>', ... }`.
 5. `js/game/questions.js`: add a generator to `BUILDERS` under the same `kind`, and a placement test generator to `TESTS`. Each question: `{ type, prompt{id,text,say,parts}, show, options[3], correct }`. 10 questions per stage.
 6. If there is a new option type (not a letter or a picture): update `_makeCard` in `js/game/runner.js` and `describe` in `questions.js`.
-7. Each stage needs `label` (strings for the stage tile) and `cards` (`{ big, word | sub, say, small? }` for the intro screen); the UI reads only those. See `js/data/harakat.js` and `js/data/mudud.js` for full examples. Sound-based worlds can reuse `soundSet` in `questions.js` by adding a system to `SYSTEMS`. The first-play placement prompt is for world 1 only.
+7. Each stage needs `label` (strings for the stage tile) and `cards` (`{ big, word | sub, say, small? }` for the intro screen); the UI reads only those. See `js/data/harakat.js` and `js/data/mudud.js` for full examples. Sound-based worlds can reuse `soundSet` in `questions.js` by adding a system to `SYSTEMS`. The most flexible stage kind is `plan` (see `js/data/marks.js`): each stage lists parts, and the world sets `testPlan` for its placement test. The first-play placement prompt is for world 1 only.
 8. `index.html`: add the new data script before `worlds.js`.
 9. Document new audio ids in the comment in `js/data/audio-manifest.js`.
 10. Thmanyah renders fatha, damma and kasra correctly. Check any new mark (sukun, shadda, tanwin) in one screenshot before relying on it (`assets/fonts/NotoNaskhArabic-Marks.woff2` is there as a fallback).

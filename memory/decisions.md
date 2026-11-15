@@ -29,7 +29,8 @@
 - Technical: Canvas 2D, plain scripts without modules or libraries, so it drops easily into Django.
 - A world opens when the previous one is done (at least one star on every stage) or its placement test is passed.
 - Syllable speech: text-to-speech does not reliably read a lone "بَ", so the spoken text adds a silent-ish ha: "بَهْ" (`DF.syl` in `js/data/harakat.js`). Not yet heard on a real device. On-screen prompts describe the syllable in words ("أين الباء مع الفتحة؟") so the question still works without sound.
-- Thmanyah renders harakat correctly on gates and cards (checked by screenshot).
+- Thmanyah renders harakat, sukun, tanwin, shadda and joined letter forms correctly on gates and cards (checked by screenshot).
+- Tanwin speech is spelled phonetically for the device voice ("بَنْ" for "بًا"). Sukun and shadda units are spoken as written ("أَبْ", "أَبَّ"). None of this has been heard on a real device yet.
 - Code comments are still in Arabic.
 
 ## Findings

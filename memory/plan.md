@@ -7,9 +7,9 @@
 | 1 | حديقة الحروف | Letters | KG | 7 | slow | Built, waiting for user feedback |
 | 2 | تلّة الحركات | Harakat تَ تُ تِ | KG–1 | 7 | slow | Built, waiting for user feedback |
 | 3 | جسر المدود | Long vowels | 1 | 6 | slow | Built, waiting for user feedback |
-| 4 | كهف السكون | Sukun and letter forms | 1 | 5 | slow | Next |
-| 5 | قلعة الشدّة | Tanwin and shadda | 1–2 | 5 | slow | — |
-| 6 | سوق الكلمات | Words and pictures | 2 | 8 | medium | — |
+| 4 | كهف السكون | Sukun and letter forms | 1 | 5 | slow | Built, waiting for user feedback |
+| 5 | قلعة الشدّة | Tanwin and shadda | 1–2 | 5 | slow | Built, waiting for user feedback |
+| 6 | سوق الكلمات | Words and pictures | 2 | 8 | medium | Next (first world at medium speed: no waiting at the gates) |
 | 7 | ورشة الإملاء | Missing letter, similar-sounding letters, sun and moon lam, ta forms | 2–3 | 8 | medium | — |
 | 8 | بستان المعاني | Singular/plural, masculine/feminine, opposite, synonym | 3–4 | 8 | medium | — |
 | 9 | مدينة الكلمات | Noun/verb/particle, tenses, pronouns, hamza | 4–5 | 8 | fast | — |
@@ -33,11 +33,19 @@ Stages 1–4: hear a syllable and pick it among other letters with the same hara
 
 Uses the same generator as world 2 (`soundQ` / `soundSet` in `js/game/questions.js`, driven by a sound system: harakat or mudud) plus a `short-long` type. Data and its own word list (26 words whose first syllable is long) are in `js/data/mudud.js`.
 
+## Worlds 4 and 5 (built, breakdowns approved by the user)
+
+World 4: 1. Sukun (أَبْ أَتْ). 2. Sukun with the three harakat (أَبْ أُبْ إِبْ). 3. Letter form at the start of a word (بـ عـ هـ). 4. Middle and end forms (ـعـ ـع). 5. Review plus "which word contains the letter".
+
+World 5: 1. Tanwin fath (بًا). 2. Tanwin damm and kasr (بٌ بٍ). 3. The three tanwin types. 4. Shadda (أَبَ or أَبَّ). 5. Review plus "which word has a shadda".
+
+Both use stage kind `plan`: a stage lists parts, each part is a sound system (`sukun`, `tanwin`, `shadda`, ...) with question types, or a `forms` list (`form-pick`, `form-of`, `word-has`, `word-shadda`). Data in `js/data/marks.js`; builders `planSet` and `formsSet` in `js/game/questions.js`. A world's placement test is its `testPlan`.
+
 ## Placement test (built)
 
 Offered once on first play, and as a card on the stages screen. 12 questions across all stages of the world, harder distractors, 1 mistake allowed (2 hearts). Passing opens all stages of the world with no stars. Each world needs its own test generator in `TESTS` in `js/game/questions.js`. After a pass, the result button leads to the next world.
 
 ## Waiting
 
-- User feedback on worlds 1, 2 and 3 before continuing. In particular: how the device voice pronounces single syllables (see decisions).
+- User feedback on worlds 1 to 5 before continuing. In particular: how the device voice pronounces single syllables (see decisions).
 - Later: teacher recordings, images instead of emoji, mosque platform integration, a stable public link (GitHub Pages needs a `main` branch and Pages enabled).

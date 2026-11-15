@@ -13,6 +13,7 @@
      syl-<حرف>-<حركة>   المقطع (syl-ba-fatha = «بَ»)
      haraka-<id>         اسم الحركة أو المد (haraka-fatha = «الفتحة»، haraka-madd-alif = «مدّ الألف»)
      syl-<حرف>-madd-*    المقطع الطويل (syl-ba-madd-alif = «بَا»)
+     syl-sukun-<حرف>-<حركة>، syl-<حرف>-tanwin-*، syl-shadda-<حرف>-<حركة>، syl-plain-<حرف>-<حركة>
      praise-1..4    «أحسنت» «ممتاز» «رائع» «صحيح»
 
    معرّفات الحروف والكلمات موجودة في js/data/letters.js */
