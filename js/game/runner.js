@@ -42,6 +42,8 @@
     this.speed = 2.1;
     this.wait = true;
     this.hint = false;
+    this.run = false;      // جري بدون توقّف: المسار بيتغيّر لحد البوابة
+    this.zFar = ZFAR;
     this.hudBottom = 150;
     this.W = 0; this.H = 0; this.dpr = 1;
     this.raf = 0; this.last = 0; this.paused = false;
@@ -54,7 +56,7 @@
   var P = Runner.prototype;
 
   P.on = function (ev, fn) { this.handlers[ev] = fn; };
-  P.emit = function (ev, a) { if (this.handlers[ev]) this.handlers[ev](a); };
+  P.emit = function (ev, a, b) { if (this.handlers[ev]) this.handlers[ev](a, b); };
 
   P.reset = function () {
     this.state = 'idle';
@@ -72,7 +74,8 @@
     if (o.character) this.character = o.character;
     if (o.speed) this.speed = o.speed;
     if (o.wait != null) this.wait = o.wait;
-    this.hint = !!o.hint;
+    if (o.hint != null) this.hint = !!o.hint;
+    if (o.run != null) { this.run = !!o.run; this.zFar = this.run ? 14 : ZFAR; }
     if (o.hudBottom != null) this.hudBottom = o.hudBottom;
   };
 
@@ -187,7 +190,7 @@
     this.gates = options.map(function (o, i) {
       return { opt: o, correct: i === correct, disabled: false, open: 0, shake: 0, card: self._makeCard(o) };
     });
-    this.gateZ = ZFAR;
+    this.gateZ = this.zFar;
     this.chosen = null;
     this.waitT = 0;
     this.state = 'approach';
@@ -195,8 +198,13 @@
 
   P.choose = function (l) {
     if (this.paused) return;
-    if (this.state !== 'approach' && this.state !== 'wait') return;
     l = U.clamp(l, 0, 2);
+    if (this.run) {   // بدون التزام وبدون تسريع: بس تغيير مسار
+      if (this.state !== 'approach' && this.state !== 'bump' && this.state !== 'run') return;
+      if (l !== this.lane) { this.lane = l; this.emit('lane', l); }
+      return;
+    }
+    if (this.state !== 'approach' && this.state !== 'wait') return;
     var g = this.gates[l];
     if (!g) return;
     if (g.disabled) { g.shake = 0.6; this.emit('blocked', l); return; }
@@ -204,6 +212,23 @@
     this.dashV = 3;
     this.state = 'dash';
     this.emit('choose', l);
+  };
+
+  /* الوصول للبوابة: الصح بيعبر، الغلط بيخبط وبيرجع. again = بوابة مسكّرة من قبل */
+  P._hit = function (g) {
+    if (g.correct) {
+      this.state = 'pass';
+      this.hopT = 0.5;
+      this._burst(this.W / 2 + (this.charX - this.camX) * this.F / ZC, this.hz + (CAMH - 0.5) * this.F / ZC, 26);
+      this.emit('correct', this.chosen);
+    } else {
+      var again = g.disabled;
+      this.state = 'bump';
+      this.bumpT = 0; this.bumpFrom = this.gateZ;
+      g.disabled = true; g.shake = 1;
+      this.hitT = 0.8; this.shake = 0.35;
+      this.emit('wrong', this.chosen, again);
+    }
   };
 
   P.finish = function () { this.state = 'finish'; this.finishT = 0; this.gates = []; };
@@ -266,7 +291,13 @@
       case 'approach':
         v = this.speed;
         this.gateZ -= v * dt;
-        if (this.gateZ <= ZSTOP) {
+        if (this.run) {
+          for (var gi = 0; gi < this.gates.length; gi++) {
+            var gg = this.gates[gi], near = gi === this.lane && gg.correct && this.gateZ < ZC + 0.8;
+            gg.open = U.clamp(gg.open + (near ? 1 : -1) * dt * 6, 0, 1);
+          }
+          if (this.gateZ <= ZC + 0.32) { this.chosen = this.lane; this._hit(this.gates[this.lane]); }
+        } else if (this.gateZ <= ZSTOP) {
           this.gateZ = ZSTOP;
           if (this.wait) { this.state = 'wait'; this.waitT = 0; v = 0; }
           else this.choose(this.lane);
@@ -281,20 +312,7 @@
         v = Math.abs(this.charX - (this.lane - 1)) < 0.3 ? this.dashV : 1.0;
         this.gateZ -= v * dt;
         if (g.correct && this.gateZ < ZC + 1.5) g.open = Math.min(1, g.open + dt * 6);
-        if (this.gateZ <= ZC + 0.32) {
-          if (g.correct) {
-            this.state = 'pass';
-            this.hopT = 0.5;
-            this._burst(this.W / 2 + (this.charX - this.camX) * this.F / ZC, this.hz + (CAMH - 0.5) * this.F / ZC, 26);
-            this.emit('correct', this.chosen);
-          } else {
-            this.state = 'bump';
-            this.bumpT = 0; this.bumpFrom = this.gateZ;
-            g.disabled = true; g.shake = 1;
-            this.hitT = 0.8; this.shake = 0.35;
-            this.emit('wrong', this.chosen);
-          }
-        }
+        if (this.gateZ <= ZC + 0.32) this._hit(g);
         break;
       case 'pass':
         g = this.gates[this.chosen];
@@ -471,7 +489,7 @@
     var c = this.ctx, W = this.W, F = this.F, hz = this.hz, z = this.gateZ;
     if (z < 0.5) return;
     var s = F / z, gy = hz + CAMH * s, cx0 = W / 2 - this.camX * s;
-    var alpha = U.clamp((z - 0.5) / 0.6, 0, 1) * U.clamp((ZFAR + 0.6 - z) / 1.2, 0, 1);
+    var alpha = U.clamp((z - 0.5) / 0.6, 0, 1) * U.clamp((this.zFar + 0.6 - z) / 1.2, 0, 1);
     c.save();
     c.globalAlpha = alpha;
 

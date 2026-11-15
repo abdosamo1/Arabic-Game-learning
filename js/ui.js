@@ -114,7 +114,7 @@
       return '<button class="stage' + (isNext ? ' next' : '') + '" type="button" data-stage="' + i + '"' + (open ? '' : ' disabled') +
         ' aria-label="المرحلة ' + U.num(i + 1) + '">' +
         '<span class="stage-num">' + (open ? U.num(i + 1) : IC.lock) + '</span>' +
-        '<span class="stage-letters">' + label + '</span>' +
+        '<span class="stage-letters' + (s.labelText ? ' text' : '') + '">' + label + '</span>' +
         '<span class="stage-stars">' + stars(got) + '</span></button>';
     }).join('');
     var allOpen = w.stages.every(function (s, i) { return stageOpen(w, i); });
@@ -133,6 +133,10 @@
   RENDER.intro = function () {
     var w = view.world, s = w.stages[view.stage];
     $('intro-title').textContent = 'المرحلة ' + U.num(view.stage + 1);
+    var sp = DF.SPEEDS[w.speed];
+    $('intro-how').textContent = sp.run
+      ? 'الشخصية لا تتوقف: اختر المسار قبل الوصول إلى البوابة. معك ' + U.num(sp.hearts) + ' قلوب.'
+      : 'في اللعبة: استمع، ثم اضغط على البوابة الصحيحة.';
     $('intro-cards').innerHTML = s.cards.map(function (c, i) {
       return '<button class="letter-card" type="button" data-card="' + i + '" aria-label="' + U.esc(c.say.text) + '">' +
         '<span class="letter-big' + (c.small ? ' small' : '') + '">' + c.big + '</span>' +
@@ -206,14 +210,18 @@
     var n = game.qs.length, lives = DF.config.testMaxMistakes + 1;
     $('progress-fill').style.width = (100 * game.i / n) + '%';
     $('progress-num').textContent = U.num(game.i) + '/' + U.num(n);
-    $('hud-stars').innerHTML = game.test ? hearts(Math.max(0, lives - game.mistakes), lives) : stars(potentialStars(game.mistakes));
+    $('hud-stars').innerHTML = game.test ? hearts(Math.max(0, lives - game.mistakes), lives)
+      : game.hearts ? hearts(Math.max(0, game.hearts - game.mistakes), game.hearts)
+      : stars(potentialStars(game.mistakes));
   }
 
   function setPrompt(q) {
     var showEl = $('prompt-show');
     if (q.show.kind === 'pic') showEl.innerHTML = pic(q.show.word);
     else if (q.show.kind === 'letter') showEl.textContent = q.show.letter.char;
+    else if (q.show.kind === 'word') showEl.textContent = q.show.text;
     else showEl.innerHTML = '';
+    showEl.classList.toggle('word', q.show.kind === 'word');
     $('prompt-text').textContent = q.prompt.text;
   }
 
@@ -253,7 +261,8 @@
     show('game');
     var sp = DF.SPEEDS[w.speed];
     runner.reset();
-    runner.configure({ character: character(), speed: sp.speed, wait: sp.wait, hint: store.totalStars() === 0 });
+    g.hearts = g.test ? 0 : (sp.hearts || 0);
+    runner.configure({ character: character(), speed: sp.speed, wait: !!sp.wait, run: !!sp.run, hint: store.totalStars() === 0 });
     setPrompt(game.qs[0]);
     updateHud();
     layoutGame();
@@ -272,6 +281,7 @@
 
   runner.on('choose', function () { audio.stop(); audio.sfx('tap'); });
   runner.on('blocked', function () { audio.sfx('blocked'); });
+  runner.on('lane', function () { audio.sfx('tap'); });
 
   runner.on('correct', function (lane) {
     var q = game.qs[game.i], opt = q.options[lane], pr = DF.Q.praise();
@@ -282,8 +292,9 @@
     audio.say(opt.kind === 'pic' ? { id: 'word-' + opt.word.id, text: opt.word.text, say: opt.word.say } : pr);
   });
 
-  runner.on('wrong', function (lane) {
+  runner.on('wrong', function (lane, again) {
     var q = game.qs[game.i];
+    if (again) { audio.sfx('wrong'); return; }   // خبطة ببوابة مسكّرة من قبل: بدون خسارة قلب
     game.mistakes++;
     updateHud();
     audio.sfx('wrong');
@@ -293,10 +304,17 @@
       later(function () { show('result'); }, 1300);
       return;
     }
+    if (game.hearts && game.mistakes >= game.hearts) {
+      game.done = true;
+      game.result = { fail: true };
+      later(function () { show('result'); }, 1300);
+      return;
+    }
     toast(DF.Q.retry.text, true);
     later(function () {
       if (!game || game.done || current !== 'game') return;
       audio.say(DF.Q.describe(q.options[lane]));
+      if (runner.run) return;   // الشخصية راجعة تجري: ما في وقت لكلام أطول
       audio.say(DF.Q.retry);
       if (q.type !== 'pic2letter' && !q.noRepeat) audio.say(q.prompt);
     }, 350);
@@ -347,6 +365,17 @@
     $('result-stars').hidden = false;
     $('btn-retry').hidden = false;
     $('btn-to-stages').hidden = false;
+    if (res.fail) {
+      $('result-hero').textContent = character().emoji;
+      $('result-title').textContent = 'انتهت القلوب';
+      $('result-note').textContent = 'حاول مرة أخرى، واختر المسار قبل الوصول إلى البوابة.';
+      $('result-stars').hidden = true;
+      $('result-rows').innerHTML = '';
+      $('result-unlock').hidden = true;
+      $('btn-next').textContent = 'إعادة';
+      $('btn-retry').hidden = true;
+      return;
+    }
     if (res.test) { renderTestResult(res); return; }
     var titles = { 3: 'ممتاز!', 2: 'أحسنت!', 1: 'جيّد!' };
     var notes = {
@@ -447,6 +476,7 @@
     $('btn-to-stages').addEventListener('click', function () { clearTimers(); show('stages'); });
     $('btn-next').addEventListener('click', function () {
       clearTimers();
+      if (game.result.fail) { restart(); return; }
       if (game.test) {
         var nw = nextWorld(game.world);
         if (game.result.pass && nw && nw.ready) view.world = nw;

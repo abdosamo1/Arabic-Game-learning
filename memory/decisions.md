@@ -17,6 +17,7 @@
 - Placement test so advanced students skip easy stages. Passing gives no stars; stages just open and become optional.
 - Save tokens: no subagents, no extra MCP servers.
 - All writing about the project is in English (README, memory, skills, commits, PRs).
+- Run mode for medium and fast worlds (6–10), as specified by the user: the stage has exactly 5 hearts; the character never stops; a wrong gate bumps it back; the child can change lane any time before reaching the gate, even after tapping one; the character does not speed up when a lane is chosen.
 
 ## From Claude (user has neither objected nor confirmed; can change)
 
@@ -25,7 +26,8 @@
 - Tapping a gate is a final choice. A wrong gate closes and the child tries another. No losing; the minimum is one star.
 - After a mistake the game says the name of the chosen letter, then "try again".
 - An intro screen shows the stage's letters before play.
-- Placement test: 12 questions, 1 mistake allowed, ends at the second mistake, can be retaken.
+- Placement test: 12 questions, 1 mistake allowed, ends at the second mistake, can be retaken. Same rule in run-mode worlds (2 hearts).
+- Run mode details: losing all 5 hearts ends the stage with no stars ("انتهت القلوب") and offers a retry. Bumping again into a gate that is already closed costs no heart. Stars keep the same rule (0 mistakes = 3, 1 = 2, otherwise 1). Gates appear farther away (z 14) to give reading time.
 - Technical: Canvas 2D, plain scripts without modules or libraries, so it drops easily into Django.
 - A world opens when the previous one is done (at least one star on every stage) or its placement test is passed.
 - Syllable speech: text-to-speech does not reliably read a lone "بَ", so the spoken text adds a silent-ish ha: "بَهْ" (`DF.syl` in `js/data/harakat.js`). Not yet heard on a real device. On-screen prompts describe the syllable in words ("أين الباء مع الفتحة؟") so the question still works without sound.

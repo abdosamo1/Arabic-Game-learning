@@ -9,13 +9,13 @@
 | 3 | جسر المدود | Long vowels | 1 | 6 | slow | Built, waiting for user feedback |
 | 4 | كهف السكون | Sukun and letter forms | 1 | 5 | slow | Built, waiting for user feedback |
 | 5 | قلعة الشدّة | Tanwin and shadda | 1–2 | 5 | slow | Built, waiting for user feedback |
-| 6 | سوق الكلمات | Words and pictures | 2 | 8 | medium | Next (first world at medium speed: no waiting at the gates) |
-| 7 | ورشة الإملاء | Missing letter, similar-sounding letters, sun and moon lam, ta forms | 2–3 | 8 | medium | — |
+| 6 | سوق الكلمات | Words and pictures | 2 | 8 | medium | Built, waiting for user feedback |
+| 7 | ورشة الإملاء | Missing letter, similar-sounding letters, sun and moon lam, ta forms | 2–3 | 8 | medium | Next |
 | 8 | بستان المعاني | Singular/plural, masculine/feminine, opposite, synonym | 3–4 | 8 | medium | — |
 | 9 | مدينة الكلمات | Noun/verb/particle, tenses, pronouns, hamza | 4–5 | 8 | fast | — |
 | 10 | قمّة الإعراب | Sentence and i'rab | 5–6 | 8 | fast | — |
 
-Speed: slow = no timer, the character waits at the gates. Medium and fast = no waiting (code exists in `DF.SPEEDS`, not tried yet).
+Speed: slow = the character waits at the gates and a tap is a final choice. Medium and fast = run mode (see decisions): no stopping, lanes can be changed until the gate, 5 hearts per stage. Medium speed is 2.4 (about 4.4 s from gates appearing to contact), fast is 3.2 (not tried in a world yet).
 
 ## World 1 (built)
 
@@ -41,11 +41,17 @@ World 5: 1. Tanwin fath (بًا). 2. Tanwin damm and kasr (بٌ بٍ). 3. The th
 
 Both use stage kind `plan`: a stage lists parts, each part is a sound system (`sukun`, `tanwin`, `shadda`, ...) with question types, or a `forms` list (`form-pick`, `form-of`, `word-has`, `word-shadda`). Data in `js/data/marks.js`; builders `planSet` and `formsSet` in `js/game/questions.js`. A world's placement test is its `testPlan`.
 
+## World 6 (built, breakdown approved by the user)
+
+1. Animals. 2. Food. 3. Things. 4. Nature. 5. Body and clothes. 6. Vehicles and places. 7. Similar-looking words (جمل/جبل, كلب/قلب). 8. Review.
+
+Two question types: picture, pick the written word; written word, pick the picture. Words are shown vowelled. 91 words in `js/data/vocab.js`; stage 7 and the placement test pick distractors by edit distance.
+
 ## Placement test (built)
 
 Offered once on first play, and as a card on the stages screen. 12 questions across all stages of the world, harder distractors, 1 mistake allowed (2 hearts). Passing opens all stages of the world with no stars. Each world needs its own test generator in `TESTS` in `js/game/questions.js`. After a pass, the result button leads to the next world.
 
 ## Waiting
 
-- User feedback on worlds 1 to 5 before continuing. In particular: how the device voice pronounces single syllables (see decisions).
+- User feedback on worlds 1 to 6 before continuing. In particular: how the device voice pronounces single syllables (see decisions).
 - Later: teacher recordings, images instead of emoji, mosque platform integration, a stable public link (GitHub Pages needs a `main` branch and Pages enabled).

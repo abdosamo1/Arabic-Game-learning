@@ -6,6 +6,8 @@ An Arabic learning game for the Dar Al-Farah school (Wernau mosque), for childre
 
 The character runs along three lanes toward three gates, with the camera behind it. Each gate shows one answer. The right gate opens and the character passes. A wrong gate knocks the character back and closes, and the child tries again.
 
+There are two modes. In worlds 1–5 the character waits at the gates and a tap is the final choice. From world 6 on the character never stops: the child can change lane until the gate is reached, and the stage has 5 hearts.
+
 - **Stars:** up to 3 per stage (finished / at most one mistake / no mistakes). Each star counts once.
 - **School points:** every 4 stars are worth 1 school point.
 - **Characters:** 6 characters. One is open from the start, the others unlock at 15, 40, 80, 130 and 180 stars.
@@ -21,13 +23,13 @@ The character runs along three lanes toward three gates, with the camera behind 
 | 3 | Madd Bridge | Long vowels (alif, waw, ya) | 1 | 6 | Built |
 | 4 | Sukun Cave | Sukun and letter forms | 1 | 5 | Built |
 | 5 | Shadda Castle | Tanwin and shadda | 1–2 | 5 | Built |
-| 6 | Word Market | Words and pictures | 2 | 8 | Next |
-| 7 | Spelling Workshop | Basic spelling | 2–3 | 8 | Planned |
+| 6 | Word Market | Words and pictures | 2 | 8 | Built |
+| 7 | Spelling Workshop | Basic spelling | 2–3 | 8 | Next |
 | 8 | Meaning Orchard | Singular/plural, gender, opposites, synonyms | 3–4 | 8 | Planned |
 | 9 | Word City | Parts of speech, tenses, pronouns, hamza | 4–5 | 8 | Planned |
 | 10 | Grammar Summit | Sentences and i'rab | 5–6 | 8 | Planned |
 
-Each stage has 10 questions. World 1 has three question types: find the letter you hear, pick the first letter of a pictured word, and pick the picture that starts with a letter. World 2 asks for a syllable (letter plus haraka), for a haraka by name, and for the first sound of a pictured word. World 3 does the same with long vowels and adds short-versus-long questions. World 4 covers sukun, the start, middle and end forms of a letter, and finding a letter inside a word. World 5 covers tanwin and shadda.
+Each stage has 10 questions. World 1 has three question types: find the letter you hear, pick the first letter of a pictured word, and pick the picture that starts with a letter. World 2 asks for a syllable (letter plus haraka), for a haraka by name, and for the first sound of a pictured word. World 3 does the same with long vowels and adds short-versus-long questions. World 4 covers sukun, the start, middle and end forms of a letter, and finding a letter inside a word. World 5 covers tanwin and shadda. World 6 matches pictures to written words in six themes.
 
 A world opens when the previous one is finished or its placement test is passed.
 
@@ -58,6 +60,7 @@ The script needs Playwright. It prints `PASS` or `FAIL` as text. Audio is not co
 | `js/data/harakat.js` | Harakat, syllables and world 2 stages |
 | `js/data/mudud.js` | Long vowels, their words and world 3 stages |
 | `js/data/marks.js` | Sukun, tanwin, shadda, letter forms, and the stages of worlds 4 and 5 |
+| `js/data/vocab.js` | World 6 vocabulary by theme |
 | `js/data/worlds.js` | Worlds, stages and speeds |
 | `js/data/characters.js` | Characters and the stars they need |
 | `js/data/audio-manifest.js` | Recorded audio files |

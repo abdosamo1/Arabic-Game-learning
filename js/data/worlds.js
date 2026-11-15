@@ -1,13 +1,14 @@
-/* العوالم العشرة. الجاهز: ١ إلى ٥. الباقي عدد مراحل بدون محتوى. */
+/* العوالم العشرة. الجاهز: ١ إلى ٦. الباقي عدد مراحل بدون محتوى. */
 window.DF = window.DF || {};
 (function (DF) {
   'use strict';
 
-  /* السرعة: بطيئة وبدون مؤقّت (الشخصية تنتظر عند البوابات)، متوسطة، أسرع */
+  /* بطيئة: الشخصية تنتظر عند البوابات والضغط اختيار نهائي.
+     متوسطة وأسرع (run): الشخصية ما بتوقف، المسار بيتغيّر لحد البوابة، وبالمرحلة ٥ قلوب. */
   DF.SPEEDS = {
     slow: { speed: 2.1, wait: true },
-    medium: { speed: 3.0, wait: false },
-    fast: { speed: 4.0, wait: false }
+    medium: { speed: 2.4, run: true, hearts: 5 },
+    fast: { speed: 3.2, run: true, hearts: 5 }
   };
 
   function letterStages() {
@@ -33,7 +34,7 @@ window.DF = window.DF || {};
     { id: 3, title: 'جسر المدود', topic: 'المدود', grade: 'أول', icon: '🌉', color: '#4a9fd8', speed: 'slow', stages: DF.mududStages() },
     { id: 4, title: 'كهف السكون', topic: 'السكون وأشكال الحرف', grade: 'أول', icon: '⛰️', color: '#8d7fc7', speed: 'slow', stages: DF.sukunStages(), testPlan: DF.sukunTest },
     { id: 5, title: 'قلعة الشدّة', topic: 'التنوين والشدّة', grade: 'أول – ثاني', icon: '🏰', color: '#e08a5b', speed: 'slow', stages: DF.tanwinStages(), testPlan: DF.tanwinTest },
-    { id: 6, title: 'سوق الكلمات', topic: 'كلمات وصور', grade: 'ثاني', icon: '🧺', color: '#d96c8a', speed: 'medium', count: 8 },
+    { id: 6, title: 'سوق الكلمات', topic: 'كلمات وصور', grade: 'ثاني', icon: '🧺', color: '#d96c8a', speed: 'medium', stages: DF.vocabStages() },
     { id: 7, title: 'ورشة الإملاء', topic: 'الإملاء الأول', grade: 'ثاني – ثالث', icon: '✏️', color: '#3fa7a0', speed: 'medium', count: 8 },
     { id: 8, title: 'بستان المعاني', topic: 'الكلمة ومعناها', grade: 'ثالث – رابع', icon: '🍊', color: '#e6a23c', speed: 'medium', count: 8 },
     { id: 9, title: 'مدينة الكلمات', topic: 'أنواع الكلمة', grade: 'رابع – خامس', icon: '🏙️', color: '#5b8def', speed: 'fast', count: 8 },

@@ -54,28 +54,36 @@ async function play(browser, port, W, H, tag) {
   await page.evaluate(() => { DF.ui.runner.speed = 9; });   // تسريع الفحص فقط
 
   const state = () => page.evaluate(() => {
-    const r = DF.ui.runner;
-    return { state: r.state, n: r.gates.length, correct: r.gates.findIndex(g => g.correct), disabled: r.gates.filter(g => g.disabled).length };
+    const r = DF.ui.runner, g = DF.ui.game;
+    return { state: r.state, n: r.gates.length, correct: r.gates.findIndex(x => x.correct), disabled: r.gates.filter(x => x.disabled).length, i: g.i, m: g.mistakes, done: g.done };
   });
-  const waitFor = async want => {
-    for (let i = 0; i < 250; i++) { const s = await state(); if (s.state === want && s.n) return s; await page.waitForTimeout(40); }
-    fail('ما وصلت لحالة ' + want);
+  // جاهز للجواب: البوابات ظاهرة والشخصية واقفة (بطيء) أو عم تقرّب (جري)
+  const ready = async () => {
+    for (let i = 0; i < 400; i++) { const s = await state(); if (s.n === 3 && (s.state === 'wait' || s.state === 'approach')) return s; await page.waitForTimeout(30); }
+    fail('البوابات ما ظهرت');
   };
+  const until = async (cond, what) => {
+    for (let i = 0; i < 400; i++) { const s = await state(); if (cond(s)) return s; await page.waitForTimeout(30); }
+    fail(what);
+  };
+  const choose = l => page.evaluate(x => DF.ui.runner.choose(x), l);
 
   const total = await page.evaluate(() => DF.ui.game.qs.length);
   for (let q = 0; q < total; q++) {
-    let s = await waitFor('wait');
+    let s = await ready();
     if (s.correct < 0) fail('سؤال ' + (q + 1) + ' بدون جواب صحيح');
     if (q === 0) await shot('3-game');
     if (q === 1) {
-      await page.evaluate(l => DF.ui.runner.choose(l), (s.correct + 1) % 3);
-      await page.waitForTimeout(300);
-      s = await waitFor('wait');
+      const m0 = s.m;
+      await choose((s.correct + 1) % 3);
+      s = await until(x => x.m > m0, 'الغلطة ما انحسبت');
       if (s.disabled !== 1) fail('البوابة الغلط ما تسكّرت');
+      s = await ready();
       await shot('4-wrong');
     }
-    await page.evaluate(l => DF.ui.runner.choose(l), s.correct);
-    await page.waitForTimeout(250);
+    const i0 = s.i;
+    await choose(s.correct);
+    await until(x => x.i > i0 || x.done, 'الجواب الصح ما انحسب');
   }
   await page.waitForSelector('#screen-result:not([hidden])', { timeout: 8000 }).catch(() => fail('شاشة النتيجة ما ظهرت'));
   await page.waitForTimeout(1500);
@@ -94,10 +102,10 @@ async function play(browser, port, W, H, tag) {
     // رسوب: غلطتين
     await page.evaluate(w => { DF.store.reset(); DF.ui.startTest(DF.worldById(w)); DF.ui.runner.speed = 9; }, WORLD);
     for (let k = 0; k < 2; k++) {
-      const s = await waitFor('wait');
+      const s = await ready();
       const wrongLane = [0, 1, 2].filter(l => l !== s.correct)[k];
-      await page.evaluate(l => DF.ui.runner.choose(l), wrongLane);
-      await page.waitForTimeout(400);
+      await choose(wrongLane);
+      await until(x => x.m > s.m, 'غلطة الاختبار ما انحسبت');
     }
     await page.waitForSelector('#screen-result:not([hidden])', { timeout: 8000 }).catch(() => fail('شاشة الرسوب ما ظهرت'));
     const st2 = await page.evaluate(() => DF.store.state.passed);

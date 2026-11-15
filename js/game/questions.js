@@ -293,6 +293,39 @@
   function buildPlan(world, si) { var st = world.stages[si]; return planSet(st.plan, st.shuffle); }
   function testPlan(world) { return planSet(world.testPlan, true).slice(0, DF.config.testQuestions); }
 
+  /* ---------- كلمات وصور ---------- */
+  function wordsSet(types, pool, similar) {
+    var answers = U.sample(pool, types.length);
+    return types.map(function (type, i) {
+      var w = answers[i], others;
+      if (similar) {
+        others = DF.VOCAB.all.filter(function (x) { return x.text !== w.text; })
+          .map(function (x) { return { w: x, d: DF.wordDistance(w.text, x.text) + Math.random() * 0.5 }; })
+          .sort(function (a, b) { return a.d - b.d; }).slice(0, 2).map(function (e) { return e.w; });
+      } else {
+        others = U.sample(pool.filter(function (x) { return x.id !== w.id && x.emoji !== w.emoji; }), 2);
+      }
+      var q = { type: type, answer: w.id, noRepeat: true };
+      if (type === 'pic2word') {
+        q.prompt = { id: 'q-name-' + w.id, text: 'أين اسم الصورة؟', say: w.say + '. أَيْنَ كَلِمَةُ ' + w.say + '؟', parts: ['word-' + w.id, 'q-find-word'] };
+        q.show = { kind: 'pic', word: w };
+        return seal(q, [wordOpt(w, true)].concat(others.map(function (x) { return wordOpt(x, true); })));
+      }
+      q.prompt = { id: 'q-read-word', text: 'اقرأ الكلمة واختر صورتها', say: 'اِقْرَأِ الْكَلِمَةَ وَاخْتَرْ صُورَتَهَا' };
+      q.show = { kind: 'word', text: w.say };
+      return seal(q, [picOpt(w)].concat(others.map(picOpt)));
+    });
+  }
+  function buildWords(world, si) {
+    var st = world.stages[si];
+    return wordsSet(st.types, st.theme === 'all' ? DF.VOCAB.all : DF.VOCAB.themes[st.theme].words, st.similar);
+  }
+  function testWords() {
+    var types = [];
+    for (var i = 0; i < DF.config.testQuestions; i++) types.push(i % 2 ? 'word2pic' : 'pic2word');
+    return wordsSet(U.shuffle(types), DF.VOCAB.all, true);
+  }
+
   function testHarakat() {
     var types = ['mix', 'mix', 'mix', 'mix', 'mix', 'syl-same', 'syl-same', 'syl-same', 'pic-same', 'pic-same', 'pic-same', 'haraka-name'];
     return soundSet(SYSTEMS.harakat, U.shuffle(types).slice(0, DF.config.testQuestions), allIds(), null);
@@ -302,8 +335,8 @@
     return soundSet(SYSTEMS.mudud, U.shuffle(types).slice(0, DF.config.testQuestions), allIds(), null);
   }
 
-  var BUILDERS = { letters: buildLetters, harakat: buildHarakat, mudud: buildMudud, plan: buildPlan };
-  var TESTS = { letters: testLetters, harakat: testHarakat, mudud: testMudud, plan: testPlan };
+  var BUILDERS = { letters: buildLetters, harakat: buildHarakat, mudud: buildMudud, plan: buildPlan, words: buildWords };
+  var TESTS = { letters: testLetters, harakat: testHarakat, mudud: testMudud, plan: testPlan, words: testWords };
 
   DF.Q = {
     build: function (world, si) { return BUILDERS[world.stages[si].kind](world, si); },
